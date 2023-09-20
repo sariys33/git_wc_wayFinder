@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wc.wayfinder.repository.UserMapper">
+
+    <!-- 회원가입 -->
+    <insert id="save">
+        <selectKey order="BEFORE" keyProperty="id" resultType="long">
+            select users_seq.nextval from dual
+        </selectKey>
+        insert into users(id, email, password, nickname, role)
+        values(#{id}, #{email}, #{password}, #{nickname}, #{role})
+    </insert>
+
+    <!-- 이메일로 회원정보 가져오기 -->
+    <select id="findByEmail" resultType="com.wc.wayfinder.domain.Users">
+        select * from users where email=#{email}
+    </select>
+
+    <!-- 고유번호로 비밀번호 가져오기 -->
+    <select id="getPasswordById" resultType="String">
+        select password from users where id=#{id}
+    </select>
+
+    <!-- 고유번호로 회원정보 가져오기 -->
+    <select id="findById" resultType="com.wc.wayfinder.domain.Users">
+        select * from users where id=#{id}
+    </select>
+
+    <!-- 고유번호에 해당하는 유저 삭제 -->
+    <delete id="remove">
+        delete from users where id=#{id}
+    </delete>
+
+    <!-- 비밀번호 변경 -->
+    <update id="modifyPassword">
+        update users set password=#{password} where id=#{id}
+    </update>
+
+</mapper>

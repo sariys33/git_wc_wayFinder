@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/head :: head">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<th:block th:replace="layout/header :: header"></th:block>
+<main id="main">
+
+    <!-- ======= Breadcrumbs ======= -->
+    <div class="breadcrumbs">
+        <div class="page-header d-flex align-items-center hero">
+            <div class="container position-relative">
+                <div class="row d-flex justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <h4 th:text="관리자"></h4>
+                        <h2 th:text="프로필"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav>
+            <div class="container">
+                <ol>
+                    <li><a th:href="@{/main}" th:text="홈"></a></li>
+                    <li th:text="프로필"></li>
+                </ol>
+            </div>
+        </nav>
+    </div><!-- End Breadcrumbs -->
+
+    <!-- ======= Get a Quote Section ======= -->
+    <section id="get-a-quote" class="get-a-quote">
+        <div class="container" data-aos="fade-up">
+
+            <div class="row g-0 team" style="justify-content: center;">
+
+                <div class="col-lg-5">
+                    <div class="php-email-form">
+
+                        <div class="col-md-12 text-center" style="margin-bottom: 20px;">
+                            <h1 th:text="${session.manager.nickname}"></h1>
+                            <h5 th:text="${session.manager.email}"></h5>
+                        </div>
+
+                        <hr style="border-top: none;">
+                        <hr style="border-top: none;">
+
+                        <div class="col-md-12 text-center">
+                            <button type="button" class="btn btn-outline-warning" th:onclick="|window.location='@{/manager/modifyPw}'|" th:text="|비밀번호 변경|"></button>
+                            <hr>
+                            <form th:action="@{/manager/{id}/delete(id=${session.manager.id})}" method="post" id="deleteForm">
+                                <button type="button" class="btn btn-outline-danger" th:text="|회원 탈퇴|"></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section><!-- End Get a Quote Section -->
+
+</main><!-- End #main -->
+
+<!-- 계정 탈퇴 모달 -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" role="dialog" aria-labelledby="deleteUserModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="deleteUserModalLabel" th:text="|회원 탈퇴|"></h4>
+                <button type="button" class="close" id="closeModal" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body php-email-form">
+                <p class="fw-semibold" style="color: red;" th:text="|* 탈퇴시 해당 계정의 활동내역 및 정보가 모두 삭제 됩니다.|">
+
+                </p>
+                <h5 th:text="|탈퇴를 원하시면 비밀번호를 입력해주세요.|"></h5>
+                <input type="password" class="form-control" id="pwInput" placeholder="비밀번호" th:required="required" />
+                <i style="margin-top: 3px; color: red;" id="pwInputCheckMsg"></i>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="applyDeleteBtn" disabled th:text="탈퇴"></button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 계정 탈퇴 모달 끝 -->
+
+
+<th:block th:replace="layout/footer :: footer"></th:block>
+
+<script th:inline="javascript">
+    let applyBtn = $("#applyDeleteBtn");
+    let managerNoVal = [[${session.manager.id}]];
+
+    // 비활성화 속성 제거
+    function removeDisabled(element) {
+        element.removeAttr("disabled");
+    }
+
+    // 비활성화 시키기
+    function addDisabled(element) {
+        element.attr("disabled", "disabled");
+    }
+
+    $(document).ready(function(){
+        // 회원 탈퇴 버튼 클릭 이벤트
+        $("#deleteForm").on("click", "button", function(e) {
+            $("#deleteUserModal").modal("show");
+        }); // 회원 탈퇴 버튼 클릭 이벤트 끝
+
+        // 비밀번호 입력칸 유효성 검사
+        $("#pwInput").on("input", function(){
+            // 빈칸일때는 버튼 비활성화
+            if($(this).val() === "") {
+                addDisabled(applyBtn);
+            } else {
+                // 값이 채워지면 버튼 활성화
+                removeDisabled(applyBtn);
+            }
+        });
+
+        // 탈퇴 완료 버튼 클릭 이벤트
+        $("#applyDeleteBtn").click(function(){
+            console.log("applyDeleteBtn clicked");
+            // 입력 값
+            let pwInputVal = $("#pwInput").val();
+            // 보내줘야할 값 : 현재 로그인 아이디의 고유번호, 입력한 비밀번호 값
+            $.ajax({
+                url: "/manager/"+managerNoVal+"/checkPw",
+                type: "post",
+                data: pwInputVal,
+                contentType: "application/json;charset=utf-8",
+                cache: false,
+                success: function(result){
+                    console.log("password matches");
+                    alert("회원 탈퇴 성공.");
+                    $("#deleteForm").submit();
+                },
+                error: function(e){
+                    console.log("error");
+                    console.log(e);
+                    $("#pwInputCheckMsg").html("비밀번호가 일치하지 않습니다.");
+                }
+            }); // ajax end
+        }); // 탈퇴 완료 버튼 클릭 이벤트 끝
+
+
+        // 모달 닫기 버튼 클릭 이벤트
+        $("#closeModal").click(function(){
+            $("#deleteUserModal").modal("hide");
+        }); // closeModal click event end
+
+        // 모달 바깥 영역 클릭 시 모달 닫히지 않도록 처리
+        $(".modal").modal({
+            backdrop: "static", // 모달 바깥 영역 클릭 시 모달 닫히지 않음
+        });
+
+    });
+</script>
+</body>
+</html>

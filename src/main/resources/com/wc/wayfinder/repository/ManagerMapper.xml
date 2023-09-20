@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wc.wayfinder.repository.ManagerMapper">
+
+    <!-- 회원가입 -->
+    <insert id="save">
+        <selectKey order="BEFORE" keyProperty="id" resultType="long">
+            select managers_seq.nextval from dual
+        </selectKey>
+        insert into managers(id, email, password, nickname, role)
+        values(#{id}, #{email}, #{password}, #{nickname}, #{role})
+    </insert>
+
+    <!-- 이메일로 관리자정보 가져오기 -->
+    <select id="findByEmail" resultType="com.wc.wayfinder.domain.Managers">
+        select * from managers where email=#{email}
+    </select>
+
+    <!-- 고유번호로 비밀번호 가져오기 -->
+    <select id="getPasswordById" resultType="String">
+        select password from managers where id=#{id}
+    </select>
+
+    <!-- 고유번호로 관리자정보 가져오기 -->
+    <select id="findById" resultType="com.wc.wayfinder.domain.Managers">
+        select * from managers where id=#{id}
+    </select>
+
+    <!-- 고유번호에 해당하는 관리자 삭제 -->
+    <delete id="remove">
+        delete from managers where id=#{id}
+    </delete>
+
+    <!-- 비밀번호 변경 -->
+    <update id="modifyPassword">
+        update managers set password=#{password} where id=#{id}
+    </update>
+
+</mapper>

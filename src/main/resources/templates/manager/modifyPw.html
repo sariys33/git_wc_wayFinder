@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/head :: head">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<th:block th:replace="layout/header :: header"></th:block>
+<main id="main">
+
+    <!-- ======= Breadcrumbs ======= -->
+    <div class="breadcrumbs">
+        <div class="page-header d-flex align-items-center hero">
+            <div class="container position-relative">
+                <div class="row d-flex justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <h4 th:text="관리자"></h4>
+                        <h2 th:text="|비밀번호 변경|"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav>
+            <div class="container">
+                <ol>
+                    <li><a th:href="@{/main}" th:text="홈"></a></li>
+                    <li><a th:href="@{/manager/profile}" th:text="프로필"></a></li>
+                    <li th:text="|비밀번호 변경|"></li>
+                </ol>
+            </div>
+        </nav>
+    </div><!-- End Breadcrumbs -->
+
+    <!-- ======= Get a Quote Section ======= -->
+    <section id="get-a-quote" class="get-a-quote">
+        <div class="container" data-aos="fade-up">
+
+            <div class="row g-0" style="justify-content: center;">
+
+                <div class="col-lg-5">
+                    <form th:action="@{/manager/{id}/modifyPw(id=${session.manager.id})}" method="post" class="php-email-form signup-form" th:object="${form}" id="modifyPwForm">
+                        <h3 th:text="|관리자 비밀번호 변경|"></h3>
+                        <p th:text="|수정을 완료하려면 기존 비밀번호가 일치해야 합니다.|"></p>
+
+                        <div class="row gy-4">
+                            <div class="col-md-12">
+                                <h4 th:text="|* 10 ~ 20자 특수문자 포함|"></h4>
+                            </div>
+
+                            <div class="col-md-12 input-container">
+                                <input type="password" class="form-control" id="oldPwInput" placeholder="기존 비밀번호" th:required="required"/>
+                            </div>
+
+                            <div class="col-md-12 input-container">
+                                <input type="password" class="form-control" th:field="*{password}" id="newPwInput" placeholder="변경 비밀번호" th:required="required"/>
+                            </div>
+                            <i style="margin-top:3px; color: red;" id="pwValidationMsg"></i>
+
+                            <div class="col-md-12 input-container">
+                                <input type="password" class="form-control" id="pwCheckInput" placeholder="변경 비밀번호 확인" th:required="required"/>
+                            </div>
+                            <i style="margin-top:3px; color: red;" id="pwCheckValidationMsg"></i>
+
+                            <div class="col-md-12 text-center">
+                                <button type="button" class="btn-submit" id="applyModifyBtn" th:text="완료"></button>
+                            </div>
+                            <div class="col-md-12 text-center">
+                                <a th:href="@{/manager/profile}" th:text="취소"></a>
+                            </div>
+
+                        </div>
+                    </form>
+                </div><!-- End Quote Form -->
+
+            </div>
+
+        </div>
+    </section><!-- End Get a Quote Section -->
+
+</main><!-- End #main -->
+
+<th:block th:replace="layout/footer :: footer"></th:block>
+
+
+<script th:inline="javascript">
+    // 로그인 계정 고유번호
+    let managerNoVal = [[${session.manager.id}]];
+
+    // 비밀번호/확인 입력 값 비교
+    function comparePw() {
+        let newPwInputVal = $("#newPwInput").val();
+        let pwCheckInputVal = $("#pwCheckInput").val();
+        if(newPwInputVal === pwCheckInputVal) {
+            // 비밀번호/확인 입력 값 일치시
+            return true;
+        }
+        alert("변경할 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+        return false;
+    }; // comparePw end
+
+    $(document).ready(function(){
+        // 비밀번호 유효성 검사
+        function validatePassword() {
+            let newPwInput = $("#newPwInput");
+            let newPwVal = newPwInput.val();
+            let newPwLength = newPwVal.length;
+
+            // 특수문자 포함 체크
+            let hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPwVal);
+
+            if(newPwLength >= 10 && newPwLength <= 20 && hasSpecialChar) {
+                $("#pwValidationMsg").html("유효한 비밀번호입니다.");
+                $("#pwValidationMsg").css({"color": "#198754"});
+                newPwInput.attr("data-valid", "1");
+            } else if(newPwLength < 10 || newPwLength > 20) {
+                $("#pwValidationMsg").html("비밀번호는 10 ~ 20자 사이여야 합니다.");
+                $("#pwValidationMsg").css({"color": "red"});
+                newPwInput.removeAttr("data-valid");
+            } else if(!hasSpecialChar) {
+                $("#pwValidationMsg").html("특수문자가 포함되어야 합니다.");
+                $("#pwValidationMsg").css({"color": "red"});
+                newPwInput.removeAttr("data-valid");
+            }
+            let pwCheckVal = $("#pwCheckInput").val();
+            if(newPwVal !== pwCheckVal) {
+                $("#pwCheckValidationMsg").html("비밀번호와 일치하지 않습니다.");
+            }
+        }; // 비밀번호 유효성 검사 끝
+
+        // 비밀번호칸 포커스 아웃 이벤트
+        $("#newPwInput").on("blur", function(){
+            validatePassword();
+        }); // 비밀번호칸 포커스 아웃 이벤트 끝
+
+        // 비밀번호 확인 입력 이벤트
+        $("#pwCheckInput").on("input", function(){
+            let newPwInput = $("#newPwInput");
+            let newPwVal = newPwInput.val();
+            let pwCheckVal = $(this).val();
+            if(newPwVal === pwCheckVal) {
+                $("#pwCheckValidationMsg").html("");
+            } else {
+                $("#pwCheckValidationMsg").html("비밀번호와 일치하지 않습니다.");
+            }
+        }); // 비밀번호 확인 입력 이벤트
+
+        // 비밀번호 수정 완료 이벤트
+        $("#modifyPwForm").on("click", "button#applyModifyBtn", function(e){
+            console.log("applyModifyBtn clicked");
+            // 기존비밀번호 칸에 입력한 값과 현재 로그인 아이디의 비밀번호 비교
+            // 보내줘야할 값 : 현재 로그인 아이디의 고유번호, 기존비밀번호 칸의 값
+            let oldPwInputVal = $("#oldPwInput").val();
+            let newPwInputVal = $("#newPwInput").val();
+            let pwCheckInputVal = $("#pwCheckInput").val();
+
+            // 비밀번호 사용가능/일치여부 체크
+            let pwValidationData = $("#newPwInput").data("valid");
+            if(pwValidationData != 1) {
+                if(newPwInputVal == "") {
+                    alert("비밀번호를 입력해주세요.");
+                } else {
+                    alert("사용 불가능한 비밀번호 입니다.");
+                }
+                return false;
+            }
+            if(newPwInputVal != pwCheckInputVal) {
+                alert("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+                return false;
+            }
+            $.ajax({
+                url: "/manager/"+managerNoVal+"/checkPw",
+                type: "post",
+                data: oldPwInputVal,
+                contentType: "application/json;charset=utf-8",
+                success: function(result){
+                    console.log("password matches");
+                    if(comparePw()) {
+                        alert("비밀번호가 변경 되었습니다. 다시 로그인해주세요.")
+                        $("#modifyPwForm").submit();
+                    }
+                },
+                error: function(error){
+                    console.log(error);
+                    console.log("error");
+                    alert("기존 비밀번호가 일치하지 않습니다.");
+                }
+            }); // ajax end
+        }) // applyModifyBtn click event end
+
+    });
+</script>
+</body>
+</html>

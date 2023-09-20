@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/head :: head">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<th:block th:replace="layout/header :: header"></th:block>
+<main id="main">
+
+    <!-- ======= Breadcrumbs ======= -->
+    <div class="breadcrumbs">
+        <div class="page-header d-flex align-items-center hero">
+            <div class="container position-relative">
+                <div class="row d-flex justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <h4 th:text="|정보 갱신|"></h4>
+                        <h2 th:text="${place.toiletNm}"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav>
+            <div class="container">
+                <ol>
+                    <li><a th:href="@{/main}" th:text="홈"></a></li>
+                    <li><a th:href="@{/places/{id}/detail(id=${place.id})}" th:text="|화장실 정보|"></a></li>
+                    <li th:text="|화장실 정보 갱신|"></li>
+                </ol>
+            </div>
+        </nav>
+    </div><!-- End Breadcrumbs -->
+
+    <!-- ======= Get a Quote Section ======= -->
+    <section id="get-a-quote" class="get-a-quote">
+        <div class="container" data-aos="fade-up">
+
+            <div class="row g-0 team" style="justify-content: center;">
+                <div class="col-lg-5">
+
+                    <form th:action method="post" enctype="multipart/form-data" id="updateForm" th:object="${form}">
+
+                        <div class="php-email-form signup-form">
+                            <div class="col-md-12 text-center" style="margin-bottom: 20px;">
+                                <div class="input-container">
+                                    <input class="form-control" th:field="*{toiletNm}"/>
+                                </div>
+                                <br />
+                                <h5 th:text="${place.roadAddress}"></h5>
+                                <h5 th:text="${place.landAddress}"></h5>
+                                <br />
+                                <div class="input-container d-flex" style="align-items: center;">
+                                    <i class="bi bi-phone"></i>
+                                    <input type="tel" class="form-control" th:field="*{phone}" data-valid="1" />
+                                </div>
+                                <i id="phoneValidationMsg" style="color:red; margin-top:3px;"></i>
+                                <div class="input-group justify-content-center" style="margin-top: 30px;">
+                                    <i class="input-group-text">개방시간</i>
+                                    <div class="input-container select-container">
+                                        <select class="form-select form-select-sm" th:field="*{openHour}">
+                                            <option th:value="-1" selected>시</option>
+                                        </select>
+                                        <span th:text="|:|"></span>
+                                        <select class="form-select form-select-sm" th:field="*{openMinute}">
+                                            <option th:value="-1" selected>분</option>
+                                        </select>
+                                        <i th:text="| ~ |"></i>
+                                        <select class="form-select form-select-sm" th:field="*{closeHour}">
+                                            <option th:value="-1" selected>시</option>
+                                        </select>
+                                        <span th:text="|:|"></span>
+                                        <select class="form-select form-select-sm" th:field="*{closeMinute}">
+                                            <option th:value="-1" selected>분</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h3 th:text="|변경 사항|"></h3>
+                            <div class="changes member text-start" style="flex-wrap: wrap;">
+                                <div>
+                                    <input type="checkbox" id="refreshPaperDate" th:field="*{refreshPaperDate}"/>
+                                    <label th:text="|화장지 교체일자|" for="refreshPaperDate"></label>
+                                </div>
+
+                                <div>
+                                    <input type="checkbox" id="cleaningDate" th:field="*{cleaningDate}"/>
+                                    <label th:text="|최근 청소일자|" for="cleaningDate"></label>
+                                </div>
+
+                                <div>
+                                    <input type="checkbox" id="diaperChangeTable" th:field="*{diaperChangeTable}"/>
+                                    <label th:text="|기저귀 교환대 유무|" for="diaperChangeTable"></label>
+                                </div>
+
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <h3>
+                                    <label th:text="|주의 사항|" for="caution"></label>
+                                </h3>
+                                <textarea class="form-control" id="caution" th:field="*{caution}" rows="6"></textarea>
+                            </div>
+
+                            <div>
+                                <h3 th:text="|관련 사진|"></h3>
+                                <input class="form-control form-control-sm" type="file" th:field="*{imageFiles}" multiple/>
+                            </div>
+                            <div class="member image-container" style="justify-content: center;">
+                                <h5 th:text="|이미지 없음|"></h5>
+                            </div>
+
+                            <br />
+                            <div class="btn-container text-center">
+                                <button type="button" class="btn-submit" id="applyUpdate" th:text="완료"></button>
+                                <hr />
+                                <a class="btn btn-link" th:href="@{/places/{id}/detail(id=${place.id})}" th:text="취소"></a>
+                            </div>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </section><!-- End Get a Quote Section -->
+
+</main><!-- End #main -->
+
+
+<th:block th:replace="layout/footer :: footer"></th:block>
+
+<script th:inline="javascript">
+    // 고정/자주 사용할 변수값
+    let placeIdVal = [[${place.id}]];
+    let imgIdValues = [];
+
+    // 셀렉트 옵션 추가
+    function createSelOption() {
+        console.log("createSelOption");
+        let openHourSel = $("select#openHour");
+        let openMinuteSel = $("select#openMinute");
+        let closeHourSel = $("select#closeHour");
+        let closeMinuteSel = $("select#closeMinute");
+
+        // open Hour
+        for(let i = 0; i < 24; i++) {
+            // 새로운 <option> 요소 생성
+            let newOption = $("<option></option>").val(i).text(i);
+            // <select>에 <option> 추가
+            openHourSel.append(newOption);
+        }
+        // close Hour
+        for(let i = 0; i < 24; i++) {
+            let newOption = $("<option></option>").val(i).text(i);
+            closeHourSel.append(newOption);
+        }
+        // open Minute
+         for(let i = 0; i < 12; i++) {
+            let j = i * 5;
+            let newOption = $("<option></option>").val(j).text(j);
+            openMinuteSel.append(newOption);
+        }
+        // close Minute
+         for(let i = 0; i < 12; i++) {
+            let j = i * 5;
+            let newOption = $("<option></option>").val(j).text(j);
+            closeMinuteSel.append(newOption);
+        }
+    }; // createSelOption end
+
+    // input 에 value 채워주기
+    function inputValues() {
+        console.log("inputValues");
+        $("#toiletNm").val([[${place.toiletNm}]]);
+        $("#phone").val([[${place.phone}]]);
+        $("#caution").val([[${place.caution}]]);
+
+        // 개방 시간
+        let openHour = [[${place.openHour}]];
+        let openMinute = [[${place.openMinute}]];
+        let closeHour = [[${place.closeHour}]];
+        let closeMinute = [[${place.closeMinute}]];
+
+        console.log(openHour);
+        console.log(openMinute);
+        console.log(closeHour);
+        console.log(closeMinute);
+        // 5의 배수가 아니라면
+        if(openMinute % 5 != 0) {
+            openMinute = multipleOfFive(openMinute);
+            console.log(openMinute);
+        }
+        if(closeMinute % 5 != 0) {
+            closeMinute = multipleOfFive(closeMinute);
+            console.log(closeMinute);
+        }
+        $("#openHour").val(openHour);
+        $("#openMinute").val(openMinute);
+        $("#closeHour").val(closeHour);
+        $("#closeMinute").val(closeMinute);
+
+        let diaperTable = [[${place.diaperChangeTable}]];
+        if(diaperTable == 1) {
+            $("#diaperChangeTable").attr("checked", "checked");
+        }
+
+        let imageFiles = [[${place.imageFiles}]];
+        if(imageFiles != null) {
+            showImages(imageFiles);
+        };
+
+    }; // inputValues end
+
+    // 사진 보여주기
+    function showImages(imageFiles) {
+        // 추가했던 사진
+        console.log(imageFiles);
+        let imageDiv = $(".image-container");
+        let str = '';
+        for(let i = 0; i < imageFiles.length; i++) {
+            str += '<div class="img-inner-container">';
+            str += '<img src="/images/'+imageFiles[i].filename+'" data-fid="'+imageFiles[i].id+'"/>';
+            str += '<button type="button" id="hideImage" class="btn btn-sm btn-danger" data-fid="'+imageFiles[i].id+'" data-idx="'+i+'" >삭제</button></div>'
+        }
+        imageDiv.html(str);
+    }; // showImages end
+
+    // 5의 배수로 리턴
+    function multipleOfFive(value) {
+        console.log("Multiple Of Five <- " + value);
+        if(value > 55) {
+            // option 에 55가 최대값
+            return 55;
+        }
+        return Math.ceil(value / 5) * 5;
+    } // multipleOfFive end
+
+    // 전화번호 유효성 검사
+    function isValidPhone(value) {
+        let phonePattern = /^\d{2,3}-\d{3,4}-\d{4}$/;
+        if(phonePattern.test(value)) {
+            $("#phoneValidationMsg").html("");
+            return true;
+        } else {
+            $("#phoneValidationMsg").html("전화번호를 올바르게 입력해주세요.");
+            return false;
+        }
+    }; // isValidPhone end
+
+    $(document).ready(function() {
+        createSelOption();
+        inputValues();
+
+        // 완료 버튼 클릭 이벤트
+        $(".btn-container").on("click", "button#applyUpdate", function(){
+            console.log("updateForm submit event");
+            let phoneData = $("#phone").data("valid");
+            if(phoneData != 1) {
+                alert("전화번호를 다시 확인해주세요.");
+                return;
+            }
+            // 이미지 삭제 버튼으로 숨겨놨다면 삭제 요청 호출 (ajax 성공하면 폼 제출)
+            if(imgIdValues.length > 0) {
+                deleteImageFiles()
+            } else {
+                // 그냥 폼 제출
+                $("#updateForm").submit();
+            }
+        }); // applyUpdate click event end
+
+        // 숨긴 이미지 삭제 요청
+        function deleteImageFiles() {
+            $.ajax({
+                url: "/images/delete",
+                type: "delete",
+                data: JSON.stringify(imgIdValues),
+                contentType: "application/json",
+                success: function(result) {
+                    console.log("image delete success");
+                    console.log(result);
+                    $("#updateForm").submit();
+                },
+                error: function(error) {
+                    alert("이미지 삭제 요청에 실패했습니다. 다시 시도해주세요");
+                    return;
+                }
+            }); // ajax end
+        }; // deleteImageFiles
+
+        // 전화번호 입력 후 유효성 검사 시키기
+        $("#phone").blur(function(){
+            console.log("blur");
+            if(isValidPhone($(this).val())) {
+                $(this).attr("data-valid", "1");
+            } else {
+                $(this).removeAttr("data-valid");
+            }
+        }); // phone blur event end
+
+        // 이미지에 마우스 올리면 삭제버튼 보여주기
+        $(".image-container").on("mouseover", "div.img-inner-container", function(){
+            $(this).find("button#hideImage").show();
+        }); // image:mouseover event end
+
+        // 마우스 밖으로 나가면 삭제버튼 숨기기
+        $(".image-container").on("mouseout", "div.img-inner-container", function(){
+            $(this).find("button#hideImage").hide();
+        }); // image:mouseout event end
+
+        // 삭제버튼 클릭 이벤트
+        $(".img-inner-container").on("click", "button#hideImage", function(){
+            console.log("hideImageBtn clicked");
+            let image = $(this).prev();
+            let imgIdVal = $(this).data("fid");
+            // 요소 안보이게 만들기
+            image.css("display", "none");
+            $(this).hide();
+            // div 바깥에 복구 버튼 만들기
+            let str = '<button type="button" id="restoreImage" class="btn btn-info" data-fid="'+imgIdVal+'" >복구</button>';
+            $(this).parent().after(str);
+            // imgIdVal 저장해두기 (여러개 모일 예정)
+            imgIdValues.push(imgIdVal);
+            // 이후에 저장 누를때 submit 이벤트 전에 ajax imgIdVal 모아둔 객체 보내서 이미지 삭제 시키기
+            console.log(imgIdValues);
+        }); // hideImageBtn click event end
+
+        // 복구 버튼 클릭 이벤트
+        $(".image-container").on("click", "button#restoreImage", function(){
+            console.log("restoreImageBtn clicked");
+            let imageDiv = $(this).prev();
+            let imgIdVal = $(this).data("fid");
+            imageDiv.find("img").removeAttr("style");
+            let idx = imgIdValues.indexOf(imgIdVal);
+            if(idx != -1) {
+                imgIdValues.splice(idx, 1);
+            }
+            console.log(imgIdValues);
+            // 버튼 삭제 시키기
+            $(this).remove();
+        }); // restoreImageBtn click event end
+
+    });
+</script>
+</body>
+</html>

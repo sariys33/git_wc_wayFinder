@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/head :: head">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<th:block th:replace="layout/header :: header"></th:block>
+<main id="main">
+
+    <!-- ======= Breadcrumbs ======= -->
+    <div class="breadcrumbs">
+        <div class="page-header d-flex align-items-center hero">
+            <div class="container position-relative">
+                <div class="row d-flex justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <h4 th:text="Toilet"></h4>
+                        <h2 th:text="${place.toiletNm}"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav>
+            <div class="container">
+                <ol>
+                    <li><a th:href="@{/main}" th:text="홈"></a></li>
+                    <li th:text="|화장실 정보|"></li>
+                </ol>
+            </div>
+        </nav>
+    </div><!-- End Breadcrumbs -->
+
+    <!-- ======= Get a Quote Section ======= -->
+    <section id="get-a-quote" class="get-a-quote">
+        <div class="container" data-aos="fade-up">
+
+            <div class="row g-0 team" style="justify-content: center;">
+
+                <div class="col-lg-5">
+                    <div class="php-email-form">
+                        <div class="text-end" style="margin-bottom: 20px;">
+                            <a th:if="${session.manager}" class="btn btn-outline-secondary" th:href="@{/places/{id}/update(id=${place.id})}" th:text="|정보 갱신|"></a>
+                        </div>
+
+                        <div class="col-md-12 text-center" style="margin-bottom: 20px;">
+                            <h1 th:text="${place.toiletNm}"></h1>
+                            <h5 th:text="${place.roadAddress}"></h5>
+                            <h5 th:text="${place.landAddress}"></h5>
+                            <div style="display: flex; justify-content: space-evenly;">
+                                <i class="bi bi-phone"><a class="btn-link" th:text="${place.phone}"></a></i>
+                                <i>개방시간 - <a id="openingTime"></a></i>
+                            </div>
+                        </div>
+
+                        <div class="text-center naviBtn-container">
+                            <button class="btn btn-primary route" id="navigateBtn" th:text="경로"></button>
+                        </div>
+
+                        <th:block th:if="${place.refreshPaperDate != null or place.cleaningDate != null or place.diaperChangeTable == 1}">
+                            <h3 th:text="정보"></h3>
+                            <div class="member col-md-12 text-start" style="flex-wrap: wrap;">
+                                <p style="color: black;font-size: 16px;margin-bottom: 15px;padding: 10px 10px 0 10px;" th:if="${place.refreshPaperDate != null}">화장지 교체일자 :
+                                    <i th:text="${#temporals.format(place.refreshPaperDate, 'yyyy-MM-dd')}"></i>
+                                </p>
+                                <p style="color: black;font-size: 16px;margin-bottom: 15px;padding: 10px 10px 0 10px;" th:if="${place.cleaningDate != null}">최근 청소일자 :
+                                    <i th:text="${#temporals.format(place.cleaningDate, 'yyyy-MM-dd')}"></i>
+                                </p>
+                                <p style="color: black;font-size: 16px;margin-bottom: 15px;padding: 10px 10px 0 10px;" th:if="${place.diaperChangeTable == 1}" th:text="|기저귀 교환대 있음|"></p>
+                            </div>
+                        </th:block>
+
+                        <th:block th:if="${place.caution != null}">
+                            <h3 th:text="|주의 사항|"></h3>
+                            <div class="member col-md-12 text-start infoDetails">
+                                <pre style="color: black;font-size: 17px;padding: 10px 10px 10px 10px;" th:text="${place.caution}"></pre>
+                            </div>
+                        </th:block>
+
+                        <h3 th:text="|관련 사진|"></h3>
+                        <div class="member image-container">
+                            <h5 th:text="|이미지 없음|"></h5>
+                        </div>
+
+                        <hr th:if="${session.user}">
+                        <!-- 리뷰 작성 폼 / 내가 작성한 리뷰 div -->
+                        <div class="review myReview" th:if="${session.user}">
+
+                        </div>
+
+                        <!-- 작성된 리뷰들 -->
+                        <div class="review reviewList">
+                            <hr>
+                            <div class="d-flex" style="justify-content: space-between">
+                                <h3 id="reviewCount"></h3>
+                            </div>
+                            <br />
+                            <!-- 리뷰 리스트 ul -->
+                            <ul class="reviewList-ul">
+
+                            </ul>
+
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section><!-- End Get a Quote Section -->
+
+</main><!-- End #main -->
+
+
+<th:block th:replace="layout/footer :: footer"></th:block>
+
+<script th:inline="javascript">
+    // 자주 사용/고정 변수
+    let placeIdVal = [[${place.id}]];
+    let user = [[${session.user}]];
+    let userIdVal = 0;
+    let imageFiles = [[${place.imageFiles}]];
+    if(user != null) {
+        userIdVal = user.id;
+    }
+
+    if(imageFiles != null && imageFiles.length > 0) {
+        showImages(imageFiles);
+    }
+    // 사진 보여주기
+    function showImages(imageFiles) {
+        console.log("showImages");
+        // 추가했던 사진
+        console.log(imageFiles);
+        let imageDiv = $(".image-container");
+        let str = '';
+        for(let i = 0; i < imageFiles.length; i++) {
+            str += '<img src="/images/'+imageFiles[i].filename+'" data-fid="'+imageFiles[i].id+'"/>';
+        }
+        imageDiv.html(str);
+    }; // showImages end
+
+    fillTimeValue();
+    // 개방시간 채워넣기
+    function fillTimeValue() {
+        console.log("fillTimeValue");
+        let openHour = [[${place.openHour}]];
+        let openMinute = [[${place.openMinute}]];
+        let closeHour = [[${place.closeHour}]];
+        let closeMinute = [[${place.closeMinute}]];
+
+        if(openHour < 10) {
+            openHour = '0'+openHour;
+        }
+        if(openMinute < 10) {
+            openMinute = '0'+openMinute;
+        }
+        if(closeHour < 10) {
+            closeHour = '0'+closeHour;
+        }
+        if(closeMinute < 10) {
+            closeMinute = '0'+closeMinute;
+        }
+        // 원하는 형태로 보내주기
+        let str = openHour + ' : ' + openMinute + ' ~ ' + closeHour + ' : ' + closeMinute;
+        $("#openingTime").text(str);
+    }; // fillTimeValue end
+
+    $(document).ready(function(){
+        requestAll();
+        function requestAll() {
+            fetchReview();
+            getReviewList();
+        };
+
+        // 리뷰 작성 폼 불러오기
+        function reviewForm() {
+            console.log("reviewForm");
+            let myReviewDiv = $(".myReview");
+
+            let str = '';
+            str += '<div class="d-flex" style="justify-content: space-between"><h3>리뷰 작성</h3></div>';
+            str += '<div class="col-md-12"><textarea class="form-control" rows="6" id="myReviewContentInput"></textarea>';
+            str += '</div><button type="button" class="btn btn-outline-primary" id="addNewBtn">저장</button>';
+
+            myReviewDiv.html(str);
+        }; // reviewFrom end
+
+        // 내가 작성한 리뷰 불러오기
+        function fetchReview() {
+            console.log("fetchReview");
+            console.log("placeIdVal : " + placeIdVal);
+            console.log("userIdVal : " + userIdVal);
+            if(user == null) {
+                return;
+            }
+            $.ajax({
+                url: "/review/"+placeIdVal+"/"+userIdVal+"/fetch",
+                type: "get",
+                success: function(result){
+                    console.log("fetchReview Success");
+                    printReview(result);
+                },
+                error: function(error){
+                    console.log("No Review");
+                    reviewForm();
+                }
+            }); // ajax end
+        }; // fetchReview end
+
+        // 가져온 리뷰 화면에 보여주기
+        function printReview(review) {
+            console.log("printReview");
+            console.log(review);
+
+            let myReviewDiv = $(".myReview");
+            let str = '';
+
+            str += '<div class="d-flex" style="justify-content: space-between"><h3>내 리뷰</h3></div>';
+            str += '<div class="col-md-12 review-content">';
+            str += '<pre id="myReview-reviewContent">'+review.content+'</pre></div>';
+            str += '<button type="button" class="btn btn-outline-secondary" id="myReview-modifyReview" data-rid="'+review.id+'">수정</button>';
+            str += '<button type="button" class="btn btn-outline-danger" id="myReview-deleteReview" style="margin-left: 3px;" data-rid="'+review.id+'">삭제</button>';
+
+            myReviewDiv.html(str);
+        }; // printReview end
+
+        // 리뷰 저장 버튼 클릭 이벤트
+        $(".myReview").on("click", "button#addNewBtn", function(){
+            console.log("myReview submitBtn clicked");
+            let reviewContentVal = $("#myReviewContentInput").val();
+            // 저장 요청할 데이터 객체로 준비
+            if(reviewContentVal.length > 0 && placeIdVal > 0 && userIdVal > 0) {
+                let newReviewData = {
+                    place_id : placeIdVal,
+                    user_id : userIdVal,
+                    content : reviewContentVal
+                };
+                addNewReview(newReviewData);
+            }
+        }); // addNewBtn click event end
+
+        // 리뷰 저장 시키기
+        function addNewReview(data){
+            console.log(data);
+            $.ajax({
+                url : "/review/add",
+                type : "post",
+                data: JSON.stringify(data),
+                contentType: "application/json;charset=utf-8",
+                success : function(result){
+                    console.log("addNewReview Success");
+                    console.log(result);
+                    requestAll();
+                },
+                error : function(error){
+                    console.log("addNewReview error");
+                    console.log(error);
+                }
+            }); // ajax end
+        }; // addNewReview end
+
+        // 내 리뷰 수정 버튼 클릭 이벤트
+        $(".myReview").on("click", "button#myReview-modifyReview", function(){
+            console.log("myReview modifyReview clicked");
+            let reviewContent = $(this).prev();
+            let reviewContentTxt = $("#myReview-reviewContent").text();
+            console.log("reviewContentTxt : " + reviewContentTxt);
+            let str = '<textarea class="form-control" rows="6" id="myReview-modifyContentInput">'+reviewContentTxt+'</textarea>';
+            reviewContent.html(str)
+            reviewContent.removeClass("review-content");
+            // 버튼 속성 변경
+            $(this).html('완료');
+            $(this).attr("class", "btn btn-outline-primary");
+            $(this).attr("id", "myReview-applyModify");
+            // 버튼 다시 눌렀을 경우 취소 버튼을 삭제 후 생성 (취소버튼 무한생성 방지)
+            $(this).nextAll().remove();
+            $(this).after('<button type="button" class="btn btn-outline-dark" id="myReview-cancelBtn" style="margin-left: 3px;">취소</button>')
+        }); // myReview modifyReviewBtn click event end
+
+        // 내 리뷰 수정 취소 버튼 클릭 이벤트
+        $(".myReview").on("click", "button#myReview-cancelBtn", function(){
+            console.log("cancelBtn clicked");
+            requestAll();
+        }); // myReview cancelBtn click event end
+
+        // 리뷰 수정 완료 버튼 클릭 이벤트
+        $(".myReview").on("click", "button#myReview-applyModify", function(){
+            console.log("myReview applyModifyBtn clicked");
+            let reviewContentVal = $("#myReview-modifyContentInput").val();
+            let reviewIdVal = $(this).data("rid");
+            // 수정 요청에 필요한 데이터 보내주기
+            if(reviewContentVal.length > 0 && reviewIdVal > 0) {
+                modifyData = {
+                    id : reviewIdVal,
+                    content : reviewContentVal
+                }
+                modifyReview(modifyData);
+            }
+        }); // myReview applyModifyBtn click event end
+
+        // 리뷰 수정 요청
+        function modifyReview(data) {
+            console.log("modifyReview");
+            console.log("contentVal : " + data.content);
+            console.log("reviewIdVal : " + data.id);
+            $.ajax({
+                url : "/review/"+data.id+"/modify",
+                type : "put",
+                data : JSON.stringify({content: data.content}),
+                contentType: "application/json;charset=utf-8",
+                success : function(result){
+                    console.log(result);
+                    requestAll();
+                },
+                error : function(e){
+                    console.log("modifyReview Error");
+                    console.log(e);
+                }
+            }); // ajax end
+        } // modifyReview end
+
+        // 내 리뷰 삭제 버튼 클릭 이벤트
+        $(".myReview").on("click", "button#myReview-deleteReview", function(){
+            console.log("myReview deleteReviewBtn clicked");
+            let reviewIdVal = $(this).data("rid");
+            console.log(reviewIdVal);
+            deleteReview(reviewIdVal);
+        }); // myReview deleteReviewBtn click event end
+
+        // 리뷰 삭제 요청
+        function deleteReview(id) {
+            console.log("deleteReview");
+            $.ajax({
+                url: "/review/"+id+"/delete",
+                type: "delete",
+                success: function(result){
+                    console.log("deleteReview Success");
+                    requestAll();
+                },
+                error: function(error){
+                    console.log("deleteReview Error");
+                    console.log(error);
+                    requestAll();
+                }
+            }); // ajax end
+        }; // deleteReview end
+
+        // 리뷰 리스트 불러오기
+        function getReviewList() {
+            console.log("getReviewList");
+            $.ajax({
+                url: "/review/"+placeIdVal+"/list",
+                type: "get",
+                success: function(result){
+                    console.log("getReviewList Success");
+                    printReviewList(result);
+                },
+                error: function(error){
+                    console.log("getReviewList Error");
+                    console.log(error);
+                }
+            }); // ajax end
+        }; // reviewList end
+
+        // 리뷰 리스트 화면에 보여주기
+        function printReviewList(list) {
+            console.log("printReviewList");
+            console.log(list);
+
+            let reviewListUl = $(".reviewList-ul");
+            $("#reviewCount").html('리뷰 '+list.length+'개');
+
+            let str = '';
+            for(let i = 0; i < list.length; i++) {
+                str += '<li><div class="review-content"><i>'+list[i].writer+'</i>';
+                str += '<i class="float-end">'+timeFormat(list[i].createDate)+'</i>';
+                str += '<pre id="reviewList-reviewContent">'+list[i].content+'</pre>';
+                str += '</div><hr></li>';
+            }
+            reviewListUl.html(str);
+        }; // printReviewList end
+
+        // 리뷰 리스트 수정 버튼 클릭 이벤트
+        $(".reviewList").on("click", "button#reviewList-modifyReview", function(){
+            console.log("reviewList modifyReviewBtn clicked");
+            let reviewIdVal = $(this).data("rid");
+            let reviewContentTxt = $(this).parent().prev().text();
+            let reviewDiv = $(this).parent().parent();
+            reviewDiv.removeClass("review-content");
+            let str = '<div class="d-flex" style="justify-content: space-between"><h3>리뷰 수정</h3></div>';
+            str += '<div class="col-md-12"><textarea class="form-control" rows="6" id="myReviewContentInput">'+reviewContentTxt+'</textarea></div>';
+            str += '<div class="reviewList-btn-container text-end"><button id="reviewList-applyModify" class="btn btn-sm btn-link" data-rid="'+reviewIdVal+'">완료</button>';
+            str += '<button id="reviewList-cancel" class="btn btn-sm btn-link">취소</button></div>';
+            reviewDiv.html(str);
+        }); // reviewList modifyReviewBtn click event end
+
+        // 리뷰 리스트 수정 취소 버튼 클릭 이벤트
+        $(".reviewList").on("click", "button#reviewList-cancel", function(){
+            console.log("reviewList cancelBtn clicked");
+            fetchReview();
+            getReviewList();
+        }); // reviewList cancelBtn click event end
+
+        // 리뷰 리스트 수정 완료 버튼 클릭 이벤트
+        $(".reviewList").on("click", "button#reviewList-applyModify", function(){
+            console.log("reviewList applyModifyBtn clicked");
+            // 보낼 데이터
+            let reviewIdVal = $(this).data("rid");
+            let reviewContentVal = $(this).parent().prev().children().val();
+            let modifyData = {
+                id: reviewIdVal,
+                content: reviewContentVal
+            };
+            modifyReview(modifyData);
+        }); // reviewList applyModifyBtn click event end
+
+        // 리뷰 리스트 삭제 버튼 클릭 이벤트
+        $(".reviewList").on("click", "button#reviewList-deleteReview", function(){
+            console.log("reviewList deleteReviewBtn clicked");
+            let reviewIdVal = $(this).data("rid");
+                console.log(reviewIdVal);
+            deleteReview(reviewIdVal);
+        }); // reviewList deleteReviewBtn click event end
+
+        // 경로 안내 버튼 클릭 이벤트
+        $('#navigateBtn').click(function() {
+            if ("geolocation" in navigator) {
+                // 현재 위치 정보를 가져옵니다.
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var currentLat = position.coords.latitude; // 현재 위치의 위도
+                    var currentLng = position.coords.longitude; // 현재 위치의 경도
+                });
+            } else {
+                alert("현재 위치 정보를 가져올 수 없습니다.");
+            }
+        });
+
+        // 경로 버튼 클릭 이벤트
+        $(".naviBtn-container").on("click", "button#navigateBtn", function(){
+            console.log("navigateBtn clicked");
+            let oidVal = [[${place.object_id}]];
+            console.log(oidVal);
+            getPlaceInfo(oidVal);
+        }); // navigateBtn click event end
+
+        // 경로 요청 전 정보 가져오기
+        function getPlaceInfo(id) {
+            console.log("getPlaceInfo");
+            $.ajax({
+                url: "/places/"+id+"/info",
+                type: "get",
+                success: function(result){
+                    console.log("getInfo success");
+                    console.log(result);
+                    // 경로 요청
+                    navigateRoute(result);
+                },
+                error: function(error){
+                    console.log("getInfo error");
+                    console.log(error);
+                }
+            }); // ajax end
+        } // getPlaceInfo end
+
+        function navigateRoute(infoData) {
+            console.log("navigateRoute");
+            let url = 'https://map.kakao.com/link/to/'+infoData.fname+','+infoData.lat+','+infoData.lng;
+            window.open(url, "_blank")
+        } // navigateRoute end
+
+
+        // 날짜 변환 함수
+        function timeFormat(timeValue) {
+            let dateObj = new Date(timeValue);
+            let yy = dateObj.getFullYear();
+            let mm = dateObj.getMonth() + 1;
+            let dd = dateObj.getDate();
+            let hh = dateObj.getHours();
+            let mi = dateObj.getMinutes();
+
+            let result = yy + "-" + (mm > 9 ? "":"0") + mm + "-" + (dd > 9 ? "":"0") + dd + " ";
+            result += (hh > 9 ? "": "0") + hh + ":" + (mi > 9 ? "":"0") + mi;
+
+            return result;
+        } // timeFormat end
+    });
+</script>
+</body>
+</html>

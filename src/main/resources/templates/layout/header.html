@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<th:block th:fragment="header">
+<!-- ======= Header ======= -->
+<header id="header" class="header d-flex align-items-center fixed-top">
+    <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
+
+        <a th:href="@{/main}" class="logo d-flex align-items-center">
+            <h1 th:text="|WC WayFinder|"></h1>
+        </a>
+
+        <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
+        <i class="mobile-nav-toggle mobile-nav-hide d-none bi bi-x"></i>
+        <nav id="navbar" class="navbar">
+            <ul>
+                <li class="dropdown" sec:authorize="!isAuthenticated()"><a href="#"><span th:text="사용자"></span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
+                    <ul>
+                        <li><a th:href="@{/user/login}" th:text="로그인"></a></li>
+                        <li><a th:href="@{/user/signup}" th:text="회원가입"></a></li>
+                        <li><a th:href="@{/user/forgotPw}" th:text="|비밀번호 찾기|"></a></li>
+                    </ul>
+                </li>
+                <li class="dropdown" sec:authorize="!isAuthenticated()"><a href="#"><span th:text="관리자"></span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
+                    <ul>
+                        <li><a th:href="@{/manager/login}" th:text="로그인"></a></li>
+                        <li><a th:href="@{/manager/signup}" th:text="회원가입"></a></li>
+                        <li><a th:href="@{/manager/forgotPw}" th:text="|비밀번호 찾기|"></a></li>
+                    </ul>
+                </li>
+                <li><a class="logged-in" sec:authorize="isAuthenticated()" th:if="${session.user}" th:href="@{/user/profile}" th:text="|내 정보|"></a></li>
+                <li><a class="logged-in" sec:authorize="isAuthenticated()" th:if="${session.manager}" th:href="@{/manager/profile}" th:text="|내 정보|"></a></li>
+                <li><a class="logout" sec:authorize="isAuthenticated()" th:href="@{#}" th:text="로그아웃"></a></li>
+            </ul>
+        </nav>
+        <!-- .navbar -->
+
+    </div>
+</header>
+<!-- End Header -->
+</th:block>

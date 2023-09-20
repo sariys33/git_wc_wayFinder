@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wc.wayfinder.repository.PlaceMapper">
+
+    <!-- 장소 정보 등록 하기 -->
+    <insert id="savePlace">
+        <selectKey resultType="long" order="BEFORE" keyProperty="id">
+            select myplace_seq.nextval from dual
+        </selectKey>
+        insert into myplace(id, object_id, toiletNm, phone, openingTime, closingTime, refreshPaperDate, cleaningDate, diaperChangeTable, caution, lat, lng, roadAddress, landAddress)
+        values(#{id}, #{object_id}, #{toiletNm}, #{phone}, #{openingTime}, #{closingTime}, #{refreshPaperDate}, #{cleaningDate}, #{diaperChangeTable}, #{caution}, #{lat}, #{lng}, #{roadAddress}, #{landAddress})
+    </insert>
+
+    <!-- 장소 정보 등록 하면서 FK 연결 해주기 -->
+    <update id="updateFK">
+        <selectKey resultType="long" order="BEFORE" keyProperty="place_id">
+            select id from myplace where object_id=#{object_id}
+        </selectKey>
+        update ToiletLocations set place_id=#{place_id} where object_id=#{object_id}
+    </update>
+
+    <!-- 화장실 정보 존재하는지 확인 -->
+    <select id="isExists" resultType="Long">
+        select place_id from ToiletLocations where object_id=#{id}
+    </select>
+
+    <!-- 장소 정보 가져오기 -->
+    <select id="findById" resultType="com.wc.wayfinder.domain.Places">
+        select * from myplace where id=#{id}
+    </select>
+
+    <!-- 이미지 정보 가져오기 -->
+    <select id="findImagesByPid" resultType="com.wc.wayfinder.domain.ToiletImg">
+        select * from toiletImgs where place_id=#{id}
+    </select>
+
+    <!-- 이미지 정보 저장 시키기 -->
+    <insert id="saveImage">
+        <selectKey keyProperty="id" resultType="long" order="BEFORE">
+            select toiletImgs_seq.nextval from dual
+        </selectKey>
+        insert into toiletImgs(id, place_id, orgFilename, filename)
+        values(#{id}, #{place_id}, #{orgFilename}, #{filename})
+    </insert>
+
+    <!-- 화장실 정보 갱신 -->
+    <update id="update">
+        update myplace set
+            toiletNm=#{toiletNm},
+            phone=#{phone},
+            openingTime=#{openingTime},
+            closingTime=#{closingTime},
+            caution=#{caution},
+            diaperChangeTable=#{diaperChangeTable}
+        <trim>
+            <if test="refreshPaperDate != null">, refreshPaperDate=#{refreshPaperDate}</if>
+            <if test="cleaningDate != null">, cleaningDate=#{cleaningDate}</if>
+        </trim>
+        where id=#{id}
+    </update>
+
+    <!-- 이미지 삭제 -->
+    <delete id="removeImage">
+        delete toiletImgs where id=#{id}
+    </delete>
+
+    <!-- 화장실 위치 정보 리스트 가져오기 -->
+    <select id="getToiletList" resultType="com.wc.wayfinder.domain.Toilet">
+        SELECT * FROM ToiletLocations
+    </select>
+
+    <!-- 화장실 키워드로 검색 + 페이징 처리 -->
+    <select id="searchByKeyword" resultType="com.wc.wayfinder.domain.Toilet">
+    <![CDATA[
+        select r, B.* from
+            (select rownum r, A.* from
+                (select * from ToiletLocations
+                where
+                    fName like '%' || #{keyword} || '%'
+                    or gu_nm like '%' || #{keyword} || '%'
+                    or hnr_nam like '%' || #{keyword} || '%'
+                order by place_id) A
+            where rownum <= (#{pageNum} * #{listSize})) B
+        where r > (#{pageNum} - 1) * #{listSize}
+        order by object_id
+    ]]>
+    </select>
+
+    <!-- 위치 정보 가져오기 -->
+    <select id="getInfoById" resultType="com.wc.wayfinder.domain.Toilet">
+        select * from ToiletLocations where object_id=#{id}
+    </select>
+
+    <!-- 화장실 정보 추가/수정 할때 같이 해주기 -->
+    <update id="updateName">
+        update ToiletLocations set fName=#{fName} where object_id=#{object_id} or place_id=#{place_id}
+    </update>
+
+    <!-- 키워드로 검색한 결과 개수 -->
+    <select id="getResultCount" resultType="int">
+        select count(*) from ToiletLocations
+        where
+            fName like '%' || #{keyword} || '%'
+            or gu_nm like '%' || #{keyword} || '%'
+            or hnr_nam like '%' || #{keyword} || '%'
+    </select>
+
+</mapper>

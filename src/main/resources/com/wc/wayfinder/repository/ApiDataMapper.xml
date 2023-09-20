@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wc.wayfinder.repository.ApiDataMapper">
+
+    <!-- api 데이터 db 삽입    -->
+    <insert id="saveApiData" parameterType="com.wc.wayfinder.dto.ApiDataDTO">
+        INSERT INTO ToiletLocations (
+        object_id, gu_nm, hnr_nam, mtc_at, masterno, slaveno, neadres_nm, creat_de, lat, lng
+        )
+        VALUES (
+        #{object_id}, #{gu_nm}, #{hnr_nam}, #{mtc_at}, #{masterno}, #{slaveno, jdbcType=NUMERIC}, #{neadres_nm}, SYSDATE, #{lat}, #{lng}
+        )
+    </insert>
+
+    <!-- api 데이터 추가 -->
+    <update id="updateData">
+        update ToiletLocations set
+            fName=#{fName},
+            y_wgs84=#{y_wgs84},
+            x_wgs84=#{x_wgs84}
+        where lng = ROUND(#{x_wgs84}, 7) or lng = ROUND(#{x_wgs84}, 6)
+            or lat = ROUND(#{y_wgs84}, 7) or lat = ROUND(#{y_wgs84}, 6)
+    </update>
+
+</mapper>
+
+

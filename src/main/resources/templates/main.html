@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/head :: head">
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+</head>
+<!-- JavaScript 로직을 작성할 script 태그 -->
+<style>
+    .map_wrap,
+    .map_wrap * {
+      margin: 0;
+      padding: 0;
+      font-family: "Malgun Gothic", dotum, "돋움", sans-serif;
+      font-size: 12px;
+    }
+    .map_wrap a,
+    .map_wrap a:hover,
+    .map_wrap a:active {
+      color: #000;
+      text-decoration: none;
+    }
+    .map_wrap {
+      position: relative;
+      width: 100%;
+      height: 700px;
+    }
+    #menu_wrap {
+      position: absolute;
+      top: 0;
+      left: 2.5%;
+      bottom: 0;
+      width: 250px;
+      margin: 10px 0 30px 10px;
+      padding: 5px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1;
+      font-size: 12px;
+      border-radius: 10px;
+      max-height: 715px;
+    }
+    #menu_wrap hr {
+      display: block;
+      height: 1px;
+      border: 0;
+      border-top: 5px solid white;
+      margin: 5px 0;
+    }
+    #menu_wrap .option {
+      text-align: center;
+    }
+    #menu_wrap .option p {
+      margin: 10px 0;
+    }
+    #menu_wrap .option button {
+      margin-left: 5px;
+    }
+    #placesList li {
+      list-style: none;
+    }
+    #placesList .item {
+      position: relative;
+      border-bottom: 1px solid #888;
+      overflow: hidden;
+      cursor: pointer;
+      min-height: 65px;
+    }
+    #placesList .item span {
+      display: block;
+      margin-top: 4px;
+    }
+    #placesList .item h5,
+    #placesList .item .info {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    #placesList .item .info {
+      padding: 10px 0 10px 55px;
+    }
+    #placesList .info .gray {
+      color: #8a8a8a;
+    }
+    #placesList .info .jibun {
+      padding-left: 26px;
+      background: url(https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/places_jibun.png)
+        no-repeat;
+    }
+    #placesList .info .tel {
+      color: #009900;
+    }
+    #placesList .item .markerbg {
+      float: left;
+      position: absolute;
+      width: 36px;
+      height: 37px;
+      margin: 10px 0 0 10px;
+      background: url(https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_number_blue.png)
+        no-repeat;
+    }
+    #placesList .item .marker_1 {
+      background-position: 0 -10px;
+    }
+    #placesList .item .marker_2 {
+      background-position: 0 -56px;
+    }
+    #placesList .item .marker_3 {
+      background-position: 0 -102px;
+    }
+    #placesList .item .marker_4 {
+      background-position: 0 -148px;
+    }
+    #placesList .item .marker_5 {
+      background-position: 0 -194px;
+    }
+    #placesList .item .marker_6 {
+      background-position: 0 -240px;
+    }
+    #placesList .item .marker_7 {
+      background-position: 0 -286px;
+    }
+    #placesList .item .marker_8 {
+      background-position: 0 -332px;
+    }
+    #placesList .item .marker_9 {
+      background-position: 0 -378px;
+    }
+    #placesList .item .marker_10 {
+      background-position: 0 -423px;
+    }
+    #placesList .item .marker_11 {
+      background-position: 0 -470px;
+    }
+    #placesList .item .marker_12 {
+      background-position: 0 -516px;
+    }
+    #placesList .item .marker_13 {
+      background-position: 0 -562px;
+    }
+    #placesList .item .marker_14 {
+      background-position: 0 -608px;
+    }
+    #placesList .item .marker_15 {
+      background-position: 0 -654px;
+    }
+    #pagination {
+      margin: 10px auto;
+      text-align: center;
+    }
+    #pagination a {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    #pagination .on {
+      font-weight: bold;
+      cursor: default;
+      color: #777;
+    }
+
+</style>
+<th:block th:replace="layout/header :: header"></th:block>
+<body>
+<!-- ======= Hero Section ======= -->
+<section id="hero" class="hero d-flex align-items-center">
+    <div class="container">
+        <div class="row gy-4 d-flex justify-content-between">
+            <div class="col-lg-6 order-2 order-lg-1 d-flex flex-column justify-content-center">
+                <h2 data-aos="fade-up" style="font-size: 60px">Where is Toilet?</h2>
+                <div class="row gy-4" data-aos="fade-up" data-aos-delay="400"></div>
+            </div>
+
+            <div class="col-lg-5 order-1 order-lg-2 hero-img" data-aos="zoom-out">
+                <img th:src="@{/Logis/assets/img/hero-img.svg}" class="img-fluid mb-3 mb-lg-0" style="max-width: 85%;" alt="">
+            </div>
+
+        </div>
+    </div>
+</section>
+<!-- End Hero Section -->
+
+<div class="breadcrumbs">
+    <nav>
+        <div class="container">
+            <ol>
+                <li th:text="홈"></li>
+            </ol>
+        </div>
+    </nav>
+    <hr style="visibility: hidden;"/>
+</div>
+
+<div class="map_wrap d-flex justify-content-center">
+    <div id="map" style="width: 95%; height: 100%; position: relative; overflow: hidden"></div>
+
+    <div id="menu_wrap">
+        <div class="option signup-form">
+            <div id="searchForm">
+                <div class="input-container d-flex">
+                    <input type="text" class="form-control" id="keyword" placeholder="검색 (이름, 구, 동)"/>
+                    <button type="button" class="btn btn-outline-primary" id="searchByKeyword" th:text="검색"></button>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <ul id="placesList" class="search-group"></ul>
+        <div id="pagination"></div>
+    </div>
+    <div class="d-flex align-self-center" id="forMapCenter"></div>
+</div>
+
+<div style="margin-top: 10px; left: 2.5%; position: relative;">
+    <button type="button" class="btn btn-lg btn-info" id="myLocation" th:text="|현재 내 위치|"></button>
+</div>
+
+<section id="get-a-quote" class="get-a-quote detail-container" style="padding-top: 15px;">
+    <div class="container">
+
+        <div class="row g-0 team" style="justify-content: center;">
+
+            <div class="col-lg-5">
+                <div class="php-email-form place-details" style="display: none;"></div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<th:block th:replace="layout/footer :: footer"></th:block>
+
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=670ada1d233390f8d78c632bc4712974&libraries=services"></script>
+<script th:inline="javascript">
+    let manager = [[${session.manager}]];
+    var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+    mapOption = {
+        center: new kakao.maps.LatLng(37.5546486, 126.9369516), // 지도의 중심좌표 (신촌역)
+        level: 3 // 지도의 확대 레벨
+    };
+
+    // 지도를 표시할 div와  지도 옵션으로  지도를 생성합니다
+    var map = new kakao.maps.Map(mapContainer, mapOption);
+    map.setZoomable(false);
+
+    function setCenter(lat, lng) {
+        // 이동할 위도 경도 위치를 생성합니다
+        var moveLatLon = new kakao.maps.LatLng(lat, lng);
+        // 지도 레벨 지정
+        map.setLevel(3);
+        // 지도 중심을 이동 시킵니다
+        map.setCenter(moveLatLon);
+    }
+
+    // 지도 확대 축소를 제어할 수 있는  줌 컨트롤을 생성합니다
+    var zoomControl = new kakao.maps.ZoomControl();
+    map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+
+    // 위도, 경도로 위치 저장하기
+    let positions = [];
+    function getPositions() {
+        let list = [[${toiletList}]];
+        for(let i = 0; i < list.length; i++) {
+            positions.push({
+                "objectId": list[i].object_id,
+                //"placeId": list[i].place_id,
+                "fName": list[i].fname,
+                "latlng": new kakao.maps.LatLng(list[i].lat, list[i].lng)
+             });
+        }
+        console.log(positions);
+    }; // getPositions end
+
+    // 마커 이미지의 경로
+    var imageSrc = "/images/marker1.png";
+
+    // 마커 뿌려주기
+    let marker;
+    printMarker();
+    function printMarker() {
+        getPositions();
+        for(let i = 0; i < positions.length; i ++) {
+            // 마커 이미지의 이미지 크기 입니다
+            var imageSize = new kakao.maps.Size(30, 40);
+
+            // 마커 이미지를 생성합니다
+            var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
+
+            // 마커를 생성합니다
+            marker = new kakao.maps.Marker({
+                map: map, // 마커를 표시할 지도
+                position: positions[i].latlng, // 마커를 표시할 위치
+                //title : positions[i].title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
+                image : markerImage // 마커 이미지
+            });
+
+            // 마커를 식별할 변수
+            let lat = positions[i].latlng.La;
+            let lng = positions[i].latlng.Ma;
+            let objectId = positions[i].objectId;
+            let fName = positions[i].fName;
+            // 장소 이름
+            // 해당 장소의 정보 보여주는 DB 의 id 값
+
+            let iwContent = '<div style="padding:5px;">'+fName+'</div>'; // 인포윈도우에 표출될 내용으로 HTML 문자열이나 document element가 가능합니다
+            // 마커에 표시할 인포윈도우를 생성합니다
+            let infowindow = new kakao.maps.InfoWindow({
+                content: iwContent
+            });
+
+            // 마커 클릭 이벤트
+            kakao.maps.event.addListener(marker, 'click', function(){
+                console.log(lat);
+                console.log(lng);
+                getPlaceInfo(objectId);
+            });
+            // 마커 마우스 오버 이벤트
+            kakao.maps.event.addListener(marker, 'mouseover', makeOverListener(map, marker, infowindow));
+            // 마커 마우스 아웃 이벤트
+            kakao.maps.event.addListener(marker, 'mouseout', makeOutListener(infowindow));
+
+        }
+    }; // printMarker end
+
+    // 인포 윈도우 표시
+    function makeOverListener(map, marker, infowindow) {
+        return function() {
+            infowindow.open(map, marker);
+        };
+    }
+
+    // 인포 윈도우 닫기
+    function makeOutListener(infowindow) {
+        return function() {
+            infowindow.close();
+        };
+    }
+
+    // 화장실 위치 정보 가져오기
+    function getPlaceInfo(objectId) {
+        console.log("getPlaceInfo");
+        $.ajax({
+            url: "/places/"+objectId+"/info",
+            type: "get",
+            success: function(result){
+                console.log("getPlaceInfo success");
+                console.log(result);
+                if(result.place_id != null) {
+                    // 상세정보가 있다면 가져오기
+                    getDetail(result.place_id);
+                } else {
+                    // 상세정보가 없다면 추가 버튼 만들어 주기
+                    alert("해당 장소에 대한 정보가 존재하지 않습니다.");
+                    addDetailBtn(result);
+                }
+            },
+            error: function(error){
+                alert("정보를 가져오는데 실패했습니다.");
+                console.log(error);
+            }
+        }); // ajax end
+    } // getPlaceInfo end
+
+    // 해당 장소의 상세정보 가져오기
+    function getDetail(placeId) {
+        console.log("getDetail");
+        $.ajax({
+            url: "/places/"+placeId+"/show",
+            type: "get",
+            success: function(result){
+                console.log("getDetail success");
+                console.log(result);
+                showDetail(result);
+            },
+            error: function(error){
+                console.log("getDetail error");
+                console.log(error)
+            }
+        }); // ajax end
+    } // getDetail end
+
+    // 상세정보 작성 버튼 만들어주기
+    function addDetailBtn(infoData) {
+        console.log("addDetailBtn");
+        let infoDiv = $(".place-details");
+        infoDiv.css("display", "block");
+        let str = '';
+        str += '<form action="/places/new" method="get" id="addNewForm"><div class="text-center">';
+        str += '<input type="hidden" value="'+infoData.object_id+'" name="oid"/>';
+        str += '<div><h2>'+infoData.fname+'</h2></div>';
+        str += '<div style="margin-bottom: 15px;">';
+        str += '<button type="button" class="btn btn-primary" id="navigateBtn" data-oid="'+infoData.object_id+'">';
+        str += '경로</button></div>';
+        if(manager != null) {
+            str += '<div><button type="button" class="btn btn-secondary" id="addNew">상세 정보 작성</button></div>';
+        }
+        str += '</div></form>';
+        infoDiv.html(str);
+        scrollWindow(infoDiv);
+    } // addDetailBtn end
+
+    // 장소 상세정보 보여주기 --> 좀더 수정 필요
+    function showDetail(place) {
+        console.log("showDetail");
+        let infoDiv = $(".place-details");
+        infoDiv.css("display", "block");
+
+        let str = '';
+        str += '<div class="col-md-12 text-center" style="margin-bottom: 20px;">';
+        str += '<h2><a href="/places/'+place.id+'/detail">'+place.toiletNm+'</a></h2>';
+        if(place.roadAddress != null) {
+            str += '<h5>'+place.roadAddress+'</h5>';
+        }
+        if(place.landAddress != null) {
+            str += '<h5>'+place.landAddress+'</h5>';
+        }
+        str += '<div style="display: flex; justify-content: space-evenly;">';
+        str += '<i class="bi bi-phone"><a class="btn-link">'+place.phone+'</a></i>';
+        str += '<i>개방시간 - <a id="openingTime">'+timeFormat(place.openHour)+' : '+timeFormat(place.openMinute)+' ~ '+timeFormat(place.closeHour)+' : '+timeFormat(place.closeMinute)+'</a></i></div></div>';
+        str += '<div class="text-center">';
+        str += '<button class="btn btn-primary route" id="navigateBtn" data-oid="'+place.object_id+'">';
+        str += '경로</button></div>';
+        if(place.refreshPaperDate != null || place.cleaningDate != null || place.diaperChangeTable == 1) {
+            str += '<h3>정보</h3><div class="member col-md-12 text-start" style="flex-wrap: wrap;">';
+        }
+        if(place.refreshPaperDate != null) {
+            str += '<p style="color: black;font-size: 16px;margin-bottom: 15px;padding: 10px 10px 0 10px;">화장지 교체일자 : ';
+            str += '<i>'+dateFormat(place.refreshPaperDate)+'</i></p>';
+        }
+        if(place.cleaningDate != null) {
+            str += '<p style="color: black;font-size: 16px;margin-bottom: 15px;padding: 10px 10px 0 10px;">최근 청소일자 : ';
+            str += '<i>'+dateFormat(place.cleaningDate)+'</i></p>';
+        }
+        if(place.diaperChangeTable == 1) {
+            str += '<p style="color: black;font-size: 16px;margin-bottom: 15px;padding: 10px 10px 0 10px;">기저귀 교환대 있음</p>';
+        }
+        str += '</div><h3>주의 사항</h3>';
+        str += '<div class="member col-md-12 text-start infoDetails">';
+        str += '<pre style="color: black;font-size: 17px;padding: 10px 10px 10px 10px;">'
+        if(place.caution != null) {
+            str += place.caution;
+        } else {
+            str += '내용 없음';
+        }
+        str += '</pre></div>';
+
+       infoDiv.html(str);
+       scrollWindow(infoDiv);
+    }; // showDetail end
+
+    // 검색한 리스트 뿌려주기
+    function printList(list) {
+        console.log("resultList");
+        let searchUl = $("#placesList");
+        let str = '';
+        for(let i = 0; i < list.length; i++) {
+            str += '<li>';
+            str += '<div><a class="place-link" id="placeName" data-lat="'+list[i].lat+'" data-lng="'+list[i].lng+'" data-oid="'+list[i].object_id+'">'+list[i].fname+'</a></div>';
+            if(list[i].gu_nm != null) {
+                str += '<div>'+list[i].gu_nm+'</div>';
+            }
+            if(list[i].hnr_nam != null) {
+                str += '<div>'+list[i].hnr_nam+'</div>';
+            }
+            str += '</li>';
+        }
+        str += '<hr>';
+        searchUl.html(str);
+    } // printList end
+
+
+    // 날짜 변환 함수
+    function dateFormat(dateValue) {
+        let dateObj = new Date(dateValue);
+        let yy = dateObj.getFullYear();
+        let mm = dateObj.getMonth() + 1;
+        let dd = dateObj.getDate();
+
+        let result = yy + "-" + (mm > 9 ? "":"0") + mm + "-" + (dd > 9 ? "":"0") + dd;
+
+        return result;
+    }
+
+    // 시간 변환 함수
+    function timeFormat(timeValue) {
+        return (timeValue < 10 ? '0' : '')+timeValue
+    }
+
+    // 현재 위치 가져오기
+    let currentLat;
+    let currentLng;
+    getCoordinate();
+    function getCoordinate() {
+        console.log("getCoordinate");
+        if ("geolocation" in navigator) {
+            // Geolocation을 지원하는 경우
+            navigator.geolocation.getCurrentPosition(function(position) {
+                currentLat = position.coords.latitude; // 위도
+                currentLng = position.coords.longitude; // 경도
+                console.log("현재 위치 - 위도: " + currentLat + ", 경도: " + currentLng);
+            }, function(error) {
+                // 위치 정보를 가져오는 데 실패한 경우
+                console.log("현재 위치를 가져오는 데 실패했습니다.");
+                getMapCenter();
+            });
+        } else {
+            // Geolocation 을 지원하지 않는 경우
+            console.log("Geolocation이 지원되지 않습니다.");
+            getMapCenter();
+        }
+    } // getCoordinate end
+
+    function getMapCenter() {
+        console.log("getMapCenter");
+        alert("현재 지도의 중심을 현재 위치로 지정합니다.");
+        let center = map.getCenter();
+        currentLat = center.getLat();
+        currentLng = center.getLng;
+    } // getMapCenter end
+
+    // 스크롤 이동
+    function scrollWindow(div) {
+        console.log(div);
+        // 스크롤할 요소를 선택합니다.
+        let scrollTo = div[0];
+
+        // 요소의 위치 정보를 가져옵니다.
+        let divRect = scrollTo.getBoundingClientRect();
+
+        // 현재 스크롤 위치를 가져옵니다.
+        let currentScrollPosition = window.scrollY;
+
+        // 스크롤할 위치 계산: 요소의 상단 위치 + (화면 높이 / n) n이 클수록 선택요소와 화면 상단이 가까워짐
+        let scrollToY = currentScrollPosition + divRect.top - (window.innerHeight / 2.1);
+
+        // 부드러운 애니메이션 효과와 함께 스크롤을 요소 위치로 이동
+        window.scrollTo({
+            top: scrollToY,
+            behavior: 'smooth'
+        });
+    } // scrollWindow end
+
+    // 검색 창에 특수문자 있는지 확인
+    function validInput(keyword) {
+        let valid = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
+        if(valid.test(keyword)) {
+            return false;
+        }
+        return true;
+    } // validInput end
+
+    $(document).ready(function(){
+        let pageNum = 1;
+
+        // 현재 내 위치 버튼 클릭 이벤트
+        $("#myLocation").click(function(){
+            console.log("myLocation Btn clicked");
+            // 현재 위치 가져오기
+            getCoordinate();
+            // 지도 중간위치 내 위치로 이동
+            setCenter(currentLat, currentLng);
+            // 맵이 보이게 스크롤 이동
+            scrollWindow($("#forMapCenter"));
+        }); // myLocation Btn click event
+
+        // 검색 버튼 클릭 이벤트
+        $("#searchByKeyword").click(function(){
+            // 검색 키워드 가져오기
+            keyword = $("#searchForm input#keyword").val();
+            console.log(keyword);
+            // 특수 문자 들어가면 중지
+            if(!validInput(keyword)) {
+                alert("특수문자는 포함될 수 없습니다.");
+                return;
+            }
+            getResult(1);
+        }); // searchByKeyword click event end
+
+        let keyword;
+        let pagination = $("#pagination");
+        function getResult(page) {
+            console.log("getResult");
+            console.log(keyword);
+            $.ajax({
+                url: "/places/search/"+page,
+                type: "get",
+                data: {keyword: keyword},
+                contentType: "application/json;charset=utf-8",
+                success: function(result){
+                    console.log("search success");
+                    console.log(result);
+                    if(result.listCount == 0) {
+                        alert("검색 결과가 없습니다.");
+                        return;
+                    } else if(result.listCount > 100) {
+                        alert("검색 결과가 너무 많습니다. 다시 시도 해주세요.");
+                        return;
+                    } else {
+                        printList(result.list);
+                        printPagination(result.listCount);
+                        activeA(page);
+                    }
+                },
+                error: function(error){
+                    console.log("search error");
+                    console.log(error);
+                }
+            }); // ajax end
+        } // getResult end
+
+        // 페이지 출력
+        function printPagination(count) {
+            let endNum = Math.ceil(count / 20.0);
+
+            let str = '';
+            for(let i = 1; i <= endNum; i++) {
+                str += '<a>'+i+'</a>';
+            }
+            $("#pagination").html(str);
+        } // printPagination end
+
+        // 페이지 번호 이벤트 처리
+        $("#pagination").on("click", "a", function() {
+            let attr = $(this).attr("class");
+            // 현재 보고있는 페이지 눌렀으면 중지
+            if(attr == "active") {
+                return;
+            }
+            pageNum = $(this).text();
+            getResult(pageNum); // 댓글 목록 다시 요청
+        });
+
+        // .active 추가/제거
+        function activeA(i) {
+            let thisNum = pagination.children().eq(i-1);
+            let prevNum = $("a.active");
+            prevNum.removeAttr("class");
+            thisNum.attr("class", "active");
+        } // activeA end
+
+        // 검색 리스트에서 장소명 클릭시
+        $(".search-group").on("click", "a#placeName", function(){
+            console.log("placeName clicked");
+            let latVal = $(this).data("lat");
+            let lngVal = $(this).data("lng");
+            let objectIdVal = $(this).data("oid");
+            setCenter(latVal, lngVal);
+            getPlaceInfo(objectIdVal);
+        }); // placeName click event end
+
+        // 상세정보 추가 버튼 클릭 이벤트
+        $(".place-details").on("click", "button#addNew", function(){
+            console.log("addNewBtn clicked");
+            $("#addNewForm").submit();
+        }); // addNewBtn click event end
+
+        // 경로 버튼 클릭 이벤트
+        $(".place-details").on("click", "button#navigateBtn", function(){
+            console.log("navigateBtn clicked");
+            let oidVal = $(this).data("oid");
+            getLocationInfo(oidVal);
+        }); // navigateBtn click event end
+
+        // 경로 요청 전 정보 가져오기
+        function getLocationInfo(idVal) {
+            console.log("getLocationInfo");
+            $.ajax({
+                url: "/places/"+idVal+"/info",
+                type: "get",
+                success: function(result){
+                    console.log("getInfo success");
+                    console.log(result);
+                    // 경로 요청
+                    navigateRoute(result);
+                },
+                error: function(error){
+                    console.log("getInfo error");
+                    console.log(error);
+                }
+            }); // ajax end
+        } // getLocationInfo end
+
+        // 가져온 위치 정보로 카카오맵 링크 날려주기
+        function navigateRoute(infoData) {
+            console.log("navigateRoute");
+            let url = 'https://map.kakao.com/link/to/'+infoData.fname+','+infoData.lat+','+infoData.lng;
+            window.open(url, "_blank")
+        } // navigateRoute end
+
+    });
+</script>
+
+
+</body>
+</html>

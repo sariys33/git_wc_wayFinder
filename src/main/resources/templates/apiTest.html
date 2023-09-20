@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1> test </h1>
+
+<!-- JQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function(){
+        let startIdx = 1;
+        let endIdx = 1000;
+
+        $("button#next").click(function(){
+            console.log("NEXT INDEX");
+            startIdx += 1000;
+            endIdx += 1000;
+            console.log(startIdx);
+            console.log(endIdx);
+        });
+
+
+        $("button#updateData").click(function(){
+            updateData();
+        })
+
+        function updateData() {
+            $.ajax({
+                url: "http://openAPI.seoul.go.kr:8088/554668526f7361723130386865706b56/json/SearchPublicToiletPOIService/"+startIdx+"/"+endIdx+"/",
+                type: "get",
+                success: function(result){
+                    console.log("success");
+                    saveData(result.SearchPublicToiletPOIService.row);
+                },
+                error: function(e){
+                    console.log("error..." + e);
+                }
+            });
+        }
+
+        $("button#insertData").click(function(){
+            insertData();
+        })
+        function insertData() {
+            $.ajax({
+                url: "http://openAPI.seoul.go.kr:8088/554668526f7361723130386865706b56/json/GeoInfoPublicToiletWGS/1/1000",
+                type: "get",
+                success: function(result){
+                    console.log("success");
+                    saveData(result.GeoInfoPublicToiletWGS.row);
+                },
+                error: function(e){
+                    console.log("error..." + e);
+                }
+            });
+        }
+
+        function saveData(list) {
+            console.log(list);
+            console.log(JSON.stringify(list[0]));
+            $.ajax({
+                url: "/saveToiletData",
+                type: "post",
+                data: JSON.stringify(list),
+                contentType: "application/json;charset=utf-8",
+                success: function(result){
+                    console.log("save data success!!");
+                    console.log(result);
+                },
+                error: function(e) {
+                    console.log("saveData error...");
+                    console.log(e);
+                }
+            });
+        }
+    });
+</script>
+
+<button id="next">Next Index</button>
+<button id="insertData">Insert</button>
+<button id="updateData">Update</button>
+
+</body>
+</html>

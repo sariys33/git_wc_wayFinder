@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/head :: head">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<th:block th:replace="layout/header :: header"></th:block>
+<body>
+
+<div class="breadcrumbs">
+    <div class="page-header d-flex align-items-center hero" style="padding : 0; min-height : 500px">
+        <div class="container position-relative">
+            <div class="row d-flex justify-content-center">
+                <div class="col-lg-6 text-center">
+                    <h4 th:text="관리자"></h4>
+                    <h2 style="font-size : 50px" th:text="|비밀번호 찾기|"></h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ======= Get a Quote Section ======= -->
+    <section id="get-a-quote" class="get-a-quote">
+        <div class="container" data-aos="fade-up">
+
+            <div class="row g-0" style="justify-content: center;">
+
+                <div class="col-lg-5">
+                    <form th:action="@{/manager/login}" method="get" class="php-email-form signup-form" id="toLoginPage">
+                        <h3 th:text="|관리자 비밀번호 찾기|"></h3>
+                        <div class="row gy-4">
+                            <div class="col-md-12"></div>
+
+                            <div class="col-md-12 input-container">
+                                <input type="email" class="form-control" id="emailInput" placeholder="사용중인 이메일을 입력" th:required="required"/>
+                            </div>
+
+                            <div class="col-md-12 text-center">
+                                <button id="sendPw" type="button" class="btn-submit" th:text="확인"></button>
+                            </div>
+                        </div>
+                    </form>
+
+                </div><!-- End Quote Form -->
+
+            </div>
+
+        </div>
+    </section><!-- End Get a Quote Section -->
+</div>
+
+
+<th:block th:replace="layout/footer :: footer"></th:block>
+
+
+<script th:inline="javascript">
+
+     // 비활성화 속성 제거
+    function removeDisabled(element) {
+        element.removeAttr("disabled");
+    }
+
+    // 비활성화 시키기
+    function addDisabled(element) {
+        element.attr("disabled", "disabled");
+    }
+
+    $(document).ready(function(){
+        // 엔터키 폼 제출 막기
+        $("#emailInput").keydown(function(event){
+            if(event.key == "Enter") {
+                event.preventDefault();
+            }
+        });
+
+        // 비밀번호 찾기 버튼 클릭
+        $("#sendPw").on("click", function(){
+            // 이메일에 해당하는 유저 정보 가져온다
+            let emailVal = $("#emailInput").val();
+            console.log(emailVal);
+            let sendBtn = $(this);
+            addDisabled(sendBtn);
+            $.ajax({
+                url: "/mail/manager/tempPw",
+                type: "post",
+                data: emailVal,
+                contentType: "application/json;charset=utf-8",
+                success: function(result){
+                    console.log("send success");
+                    console.log("임시 비밀번호 : " + result);
+                    alert("임시 비밀번호 발송");
+                    console.log("임시 비밀번호 발송");
+                    removeDisabled(sendBtn);
+                    $("#toLoginPage").submit();
+                },
+                error: function(error){
+                    console.log("send fail");
+                    console.log(error);
+                    removeDisabled(sendBtn);
+                    alert("메일 발송에 실패 했습니다. 이메일을 다시 확인해주세요.");
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

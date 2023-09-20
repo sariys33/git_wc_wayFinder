@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/head :: head">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <!-- 헤더 -->
+    <th:block th:replace="layout/header :: header"></th:block>
+    <main id="main">
+
+        <!-- ======= Breadcrumbs ======= -->
+        <div class="breadcrumbs">
+            <div class="page-header d-flex align-items-center hero">
+                <div class="container position-relative">
+                    <div class="row d-flex justify-content-center">
+                        <div class="col-lg-6 text-center">
+                            <h4 th:text="사용자"></h4>
+                            <h2 th:text="회원가입"></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav>
+                <div class="container">
+                    <ol>
+                        <li th:text="회원가입"></li>
+                    </ol>
+                </div>
+            </nav>
+        </div><!-- End Breadcrumbs -->
+
+        <!-- ======= Get a Quote Section ======= -->
+        <section id="get-a-quote" class="get-a-quote">
+            <div class="container" data-aos="fade-up">
+
+                <div class="row g-0" style="justify-content: center;">
+
+                    <div class="col-lg-5">
+                        <form th:action method="post" class="php-email-form signup-form" th:object="${form}" id="signupForm">
+                            <h3 th:text="|사용자 회원가입|"></h3>
+                            <p th:text="|가입을 위해 필요한 내둉들을 작성해주세요.|"></p>
+                            <div class="row gy-4">
+                                <div class="col-md-12">
+                                    <h4 th:text="|* 내용 작성 필수|"></h4>
+                                </div>
+
+                                <div class="col-md-12 d-flex input-container email-container">
+                                    <input type="email" class="form-control" th:field="*{email}" placeholder="이메일" id="emailInput" th:required="required" autocomplete="off"/>
+                                    <button type="button" class="btn btn-sm btn-outline-success" id="checkEmail" th:text="|중복확인|" th:value="0" disabled></button>
+                                </div>
+                                <i style="margin-top:3px; color: red;" id="emailValidationMsg"></i>
+
+                                <div class="col-md-12 d-flex disabled input-container authCode-container">
+                                    <input type="text" class="form-control" id="authCodeInput" placeholder="이메일 중복확인 필요" maxlength="6" th:required="required" autocomplete="off" disabled/>
+                                    <button type="button" class="btn btn-sm btn-outline-success invisible" id="reSendAuthCode" th:text="재발송" style="margin-right: 5px;"></button>
+                                    <button type="button" class="btn btn-sm btn-outline-success" id="checkAuthCode" th:text="|인증번호 확인|" th:value="0" disabled></button>
+                                </div>
+                                <i class="text-danger" style="margin-top:3px;" id="authCodeValidationMsg"></i>
+
+
+                                <div class="col-md-12 d-flex input-container">
+                                    <input type="password" class="form-control" th:field="*{password}" id="pwInput" placeholder="비밀번호" th:required="required" />
+                                </div>
+                                <i style="margin-top:3px;" id="pwValidationMsg" th:text="|* 10 ~ 20자 특수문자 포함|"></i>
+
+                                <div class="col-md-12 d-flex input-container">
+                                    <input type="password" class="form-control" id="pwCheckInput" placeholder="비밀번호 확인" th:required="required" />
+                                </div>
+                                <i style="margin-top:3px; color: red;" id="pwCheckValidationMsg"></i>
+
+                                <div class="col-md-12 d-flex input-container">
+                                    <input type="text" class="form-control" th:field="*{nickname}" placeholder="이름" th:required="required" autocomplete="off" />
+                                </div>
+
+                                <div class="col-md-12 text-center">
+                                    <button type="submit" th:text="가입"></button>
+                                </div>
+
+                            </div>
+                        </form>
+                    </div><!-- End Quote Form -->
+
+                </div>
+
+            </div>
+        </section><!-- End Get a Quote Section -->
+
+    </main><!-- End #main -->
+
+    <!-- 중복확인 모달 -->
+    <div class="modal fade" id="emailCheckModal" tabindex="-1" role="dialog" aria-labelledby="emailCheckModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="emailCheckModalLabel" th:text="|이메일 중복 확인|"></h4>
+                    <button type="button" class="close" id="closeModal" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    사용 가능한 이메일 입니다.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="sendAuthCode" th:text="|인증번호 발송|"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 중복확인 모달 끝 -->
+
+    <!-- 푸터 -->
+    <th:block th:replace="layout/footer :: footer"></th:block>
+
+    <script th:inline="javascript">
+        // 변수 미리 선언
+        // 이메일 중복 확인 버튼
+        let checkEmailBtn = $("#checkEmail");
+        // 인증번호 확인 버튼
+        let checkAuthCodeBtn = $("#checkAuthCode");
+        // 인증번호 입력칸
+        let authCodeInput = $("#authCodeInput");
+        // 인증번호 재발송 버튼
+        let reSendAuthCodeBtn = $("#reSendAuthCode");
+        // 인증번호 발송한 값으로 사용할 변수
+        let sentCodeVal = "000000";
+
+        // 이메일 형식 체크
+        function isValidEmail(email) {
+            var emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+            return emailPattern.test(email);
+        } // isValidEmail end
+
+        // 비활성화 속성 제거
+        function removeDisabled(element) {
+            element.removeAttr("disabled");
+        }
+
+        // 비활성화 시키기
+        function addDisabled(element) {
+            element.attr("disabled", "disabled");
+        }
+
+        $(document).ready(function(){
+            // 이메일 입력칸 비어있으면 중복 검사 버튼 비활성화
+            $("#emailInput").on("input", function(){
+                if($(this).val() !== "") {
+                    removeDisabled(checkEmailBtn);
+                } else {
+                    addDisabled(checkEmailBtn);
+                }
+                // 중복확인, 인증 한 이후 값이 변경 된다면 초기화 시키기
+                if(checkEmailBtn.val() == 1) {
+                    // 중복확인 버튼
+                    checkEmailBtn.html("중복확인");
+                    checkEmailBtn.val("0");
+                    checkEmailBtn.attr("class", "btn btn-sm btn-outline-success");
+                    // 인증번호 입력 칸
+                    $(".authCode-container").addClass("disabled");
+                    addDisabled(authCodeInput);
+                    authCodeInput.val("");
+                    authCodeInput.attr("placeholder", "이메일 중복확인 필요");
+                    // 인증번호 확인 버튼
+                    addDisabled(checkAuthCodeBtn);
+                    checkAuthCodeBtn.attr("class", "btn btn-sm btn-outline-success");
+                    checkAuthCodeBtn.html("인증번호 확인");
+                    checkAuthCodeBtn.val("0");
+                    // 재발송 버튼
+                    reSendAuthCodeBtn.addClass("invisible");
+                    // 인증번호 일치여부 메시지
+                    $("#authCodeValidationMsg").html("");
+                }
+            });
+
+            // 중복확인 버튼 클릭 이벤트
+            $(".email-container").on("click", "button#checkEmail", function(){
+                console.log("checkEmail button clicked");
+                let emailInput = $("#emailInput");
+                let emailValue = emailInput.val();
+                let checkEmailBtn = $(this);
+
+                if (!isValidEmail(emailValue)) {
+                    // 틀린 이메일 형식일 경우
+                    checkEmailBtn.html("재입력");
+                    checkEmailBtn.val("0");
+                    checkEmailBtn.attr("class", "btn btn-sm btn-danger");
+                    $("#emailValidationMsg").html("잘못된 이메일 형식");
+                } else {
+                    // 유효한 이메일 형식일 경우
+                    // DB 에서 중복되는 이메일 있는지 확인
+                    $.ajax({
+                        url : "/user/checkEmail",
+                        type : "post",
+                        data: emailValue,
+                        contentType: "application/json;charset=utf-8",
+                        success: function(result){
+                            console.log("checkEmail Success");
+                            console.log(result);
+                            if(result == 0){
+                                // 중복되는 이메일 없을 경우
+                                $("#emailValidationMsg").html("");
+                                // 버튼 속성들 바꿔주기
+                                checkEmailBtn.attr("class", "btn btn-sm btn-success");
+                                checkEmailBtn.html("사용 가능");
+                                checkEmailBtn.val("1");
+                                // 모달 띄워주기
+                                $('#emailCheckModal').modal('show');
+                            }
+                        },
+                        error: function(error){
+                            // 이메일이 중복될경우
+                            console.log("checkEmail Error");
+                            console.log(error);
+                            $("#emailValidationMsg").html('이미 존재하는 이메일 입니다.');
+                        }
+                    }); // ajax end
+                } // if end
+            }); // checkEmail btn click event end
+
+            // 모달 내 인증번호 발송 버튼 클릭 이벤트
+            $("#sendAuthCode").click(function(){
+                console.log("sendAuthCode button clicked");
+                let emailInput = $("#emailInput");
+                let emailValue = emailInput.val();
+                let authCodeInput = $("#authCodeInput");
+                // 해당 이메일에 인증번호 발송
+                $.ajax({
+                    url: "/mail/authCode",
+                    type: "post",
+                    data: emailValue,
+                    contentType: "application/json;charset=utf-8",
+                    success: function(result){
+                        console.log("sendAuthCode Success");
+                        console.log("인증번호 : " + result);
+                        sentCodeVal = result; // 발송 인증번호 값 채워주기 (문자열)
+                        alert("인증번호 발송 성공.");
+                    },
+                    error: function(error){
+                        console.log("sendAuthCode Error");
+                        console.log(error);
+                        alert("인증번호 발송 실패. 다시 시도해주세요.")
+                    }
+                }); // ajax end
+                $('#emailCheckModal').modal('hide'); // 모달 닫아주기
+                if(checkEmailBtn.val() == 1) {
+                    // 이메일 중복확인 완료시 인증번호 입력창 활성화
+                    $(".authCode-container").removeClass("disabled");
+                    authCodeInput.attr("placeholder", "인증번호 6자");
+                    removeDisabled(authCodeInput);
+                }
+            }); // 인증번호 발송 버튼 클릭 이벤트 끝
+
+            // 인증번호 입력칸 유효성 검사
+            $("#authCodeInput").on("input", function(){
+                // 숫자만 입력되게 검사
+                this.value = this.value.replace(/[^0-9]/g, "");
+                // 인증 번호 발송 후 입력 값 6글자 채우면 버튼 활성화
+                if($(this).val().length == 6 && checkEmailBtn.val() == 1) {
+                    removeDisabled(checkAuthCodeBtn);
+                } else {
+                    addDisabled(checkAuthCodeBtn);
+                }
+            });
+
+            // 인증번호 확인 버튼 클릭 이벤트
+            $(".authCode-container").on("click", "button#checkAuthCode", function(){
+                console.log("checkAuthCode button clicked");
+                // 이메일에 보낸 인증번호 와 입력한 인증번호 일치 확인
+                let codeInputVal = authCodeInput.val();
+                if(codeInputVal == sentCodeVal) {
+                    // 일치시 value=1
+                    checkAuthCodeBtn.val("1");
+                } else {
+                    // 불일치시 value=0
+                    checkAuthCodeBtn.val("0");
+                }
+                if($(this).val() == 1) {
+                    // 버튼, 입력창 속성 변경
+                    $(this).attr("class", "btn btn-sm btn-success");
+                    $(this).html("인증 완료");
+                    addDisabled($(this));
+                    addDisabled(authCodeInput);
+                    $(".authCode-container").addClass("disabled");
+                    $("#authCodeValidationMsg").html("");
+                    $("#reSendAuthCode").addClass("invisible");
+                } else {
+                    $(this).attr("class", "btn btn-sm btn-danger");
+                    $(this).html("재입력");
+                    $("#authCodeValidationMsg").html("인증번호가 일치하지 않습니다. 다시 시도해주세요.");
+                    $("#authCodeValidationMsg").attr("class", "text-danger");
+                    $("#reSendAuthCode").removeClass("invisible");
+                }
+            }); // checkAuthCode btn click event end
+
+            // 인증번호 재발송 버튼 클릭 이벤트
+            $("#reSendAuthCode").click(function(){
+                console.log("reSendAuthCodeBtn clicked");
+                let emailInput = $("#emailInput");
+                let emailValue = emailInput.val();
+                let authCodeInput = $("#authCodeInput");
+                // 해당 이메일에 인증번호 발송
+                $.ajax({
+                     url: "/mail/authCode",
+                    type: "post",
+                    data: emailValue,
+                    contentType: "application/json;charset=utf-8",
+                    success: function(result){
+                        console.log("reSendAuthCode Success");
+                        console.log("인증번호 : " + result);
+                        sentCodeVal = result; // 발송 인증번호 값 채워주기 (문자열)
+                        $("#authCodeValidationMsg").html("인증번호가 재발송 되었습니다.");
+                        $("#authCodeValidationMsg").attr("class", "text-success");
+                    },
+                    error: function(error){
+                        console.log("reSendAuthCode Error");
+                        console.log(error);
+                        alert("인증번호 발송 실패. 다시 시도해주세요.");
+                    }
+                }); // ajax end
+            }); // reSendAuthCodeBtn click event end
+
+            // 비밀번호 유효성 검사
+            function validatePassword() {
+                let pwVal = $("#pwInput").val();
+                if(pwVal == "" || pwVal == null) { return; }
+                let pwLength = pwVal.length;
+                // 특수문자 포함 체크
+                let hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwVal);
+
+                if(pwLength >= 10 && pwLength <= 20 && hasSpecialChar) {
+                    $("#pwValidationMsg").html("유효한 비밀번호입니다.");
+                    $("#pwValidationMsg").css({"color": "#198754"});
+                    $("#pwInput").attr("data-valid", "1");
+                } else if(pwLength < 10 || pwLength > 20) {
+                    $("#pwValidationMsg").html("비밀번호는 10 ~ 20자 사이여야 합니다.");
+                    $("#pwValidationMsg").css({"color": "red"});
+                    $("#pwInput").removeAttr("data-valid");
+                } else if(!hasSpecialChar) {
+                    $("#pwValidationMsg").html("특수문자가 포함되어야 합니다.");
+                    $("#pwValidationMsg").css({"color": "red"});
+                    $("#pwInput").removeAttr("data-valid");
+                }
+            }; // 비밀번호 유효성 검사 끝
+
+            // 비밀번호칸 포커스 아웃 이벤트
+            $("#pwInput").on("blur", function(){
+                validatePassword();
+            }); // 비밀번호칸 포커스 아웃 이벤트 끝
+
+            // 비밀번호 확인 입력 이벤트
+            $("#pwCheckInput").on("input", function(){
+                let pwVal = $("#pwInput").val();
+                let pwCheckVal = $(this).val();
+                if(pwVal === pwCheckVal) {
+                    $("#pwCheckValidationMsg").html("");
+                } else {
+                    $("#pwCheckValidationMsg").html("비밀번호와 일치하지 않습니다.");
+                }
+            }); // 비밀번호 확인 입력 이벤트
+
+            // 이메일 중복확인 체크
+            function emailCheck() {
+                let emailCheckVal = checkEmailBtn.val();
+                if(emailCheckVal == 0) {
+                    alert("이메일 중복 확인 필요.");
+                    return false;
+                }
+                return true;
+            }
+
+            // 인증번호 확인 체크
+            function authCodeCheck() {
+                let authCodeCheckVal = checkAuthCodeBtn.val();
+                if(authCodeCheckVal == 0) {
+                    alert("인증번호 확인 필요.");
+                    return false;
+                }
+                return true;
+            }
+
+            // 비밀번호 사용가능/일치여부 체크
+            function pwValidation() {
+                let pwValidationData = $("#pwInput").data("valid");
+                let pwInputVal = $("#pwInput").val();
+                let pwCheckInputVal = $("#pwCheckInput").val();
+                if(pwValidationData != 1) {
+                    if(pwInputVal == "") {
+                        alert("비밀번호를 입력해주세요.");
+                    } else {
+                        alert("사용 불가능한 비밀번호 입니다.");
+                    }
+                    return false;
+                }
+                if(pwInputVal != pwCheckInputVal) {
+                    alert("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+                    return false;
+                }
+                // 전부 통과했다면
+                return true;
+            }
+
+            // 가입 완료 이벤트
+            $("#signupForm").on("submit", function(e){
+                e.preventDefault();
+                // 이메일 중복확인 체크
+                if(!emailCheck()) {
+                    return;
+                }
+                // 인증번호 확인 체크
+                if(!authCodeCheck()) {
+                    return;
+                }
+                // 비밀번호 사용가능/일치여부 체크
+                if(!pwValidation()) {
+                    return;
+                }
+                this.submit();
+            }); // 가입 완료 이벤트 끝
+
+
+            // 모달 닫기 버튼 클릭 이벤트
+            $("#closeModal").click(function(){
+                $('#emailCheckModal').modal('hide');
+            }); // closeModal click event end
+
+            // 모달 바깥 영역 클릭 시 모달 닫히지 않도록 처리
+            $(".modal").modal({
+                backdrop: "static", // 모달 바깥 영역 클릭 시 모달 닫히지 않음
+            });
+        });
+
+
+
+    </script>
+</body>
+</html>
