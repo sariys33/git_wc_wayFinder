@@ -3,7 +3,10 @@
 
 # 2차 팀 프로젝트
 
-### WC WayFinder  
+## WC WayFinder  
+
+### 주제 선정 이유
+![주제](/Files/주제.png)
   
 #### [PPT](/Files/2차_프로젝트_PPT.pdf)  
 ---
