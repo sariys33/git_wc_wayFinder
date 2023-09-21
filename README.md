@@ -8,14 +8,13 @@
 #### [PPT](/Files/2차_프로젝트_PPT.pdf)  
 
 ### 주제 선정 이유
-![주제](https://imgur.com/bEh1OGR)
+![주제](https://i.imgur.com/bEh1OGR.png)
 
 ### 구현 목표
-![구현 목표](https://imgur.com/MhlkW9t)
+![구현 목표](https://i.imgur.com/MhlkW9t.png)
 
 ### 개발 환경
-![개발 환경](https://imgur.com/xJMAMlI)
-  
+![개발 환경](https://i.imgur.com/xJMAMlI.png)
 
 ---
 
