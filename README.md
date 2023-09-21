@@ -5,7 +5,7 @@
 
 ### WC WayFinder  
   
-#### [PPT]()  
+#### [PPT](/Files/2차_프로젝트_PPT.pdf)  
 ---
 
 ### 기간
@@ -26,7 +26,7 @@
 * 와이어 프레임 구상
 
 ### 구현 목표
-![image description](주소)
+![구현 목표](/Files/목표.png)
 
 ### 개발 환경
-![image description](주소)
+![개발 환경](/Files/개발환경.png)
