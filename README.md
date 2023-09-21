@@ -1,1 +1,1 @@
-# [git_wc_wayFinder](blob/master/index.html)
+# [git_wc_wayFinder](index.html)
