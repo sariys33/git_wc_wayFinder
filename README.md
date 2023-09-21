@@ -5,10 +5,18 @@
 
 ## WC WayFinder  
 
-### 주제 선정 이유
-![주제](/Files/주제.png)
-  
 #### [PPT](/Files/2차_프로젝트_PPT.pdf)  
+
+### 주제 선정 이유
+![주제](https://imgur.com/bEh1OGR)
+
+### 구현 목표
+![구현 목표](https://imgur.com/MhlkW9t)
+
+### 개발 환경
+![개발 환경](https://imgur.com/xJMAMlI)
+  
+
 ---
 
 ### 기간
@@ -28,8 +36,4 @@
 * 안드로이드 앱
 * 와이어 프레임 구상
 
-### 구현 목표
-![구현 목표](/Files/목표.png)
 
-### 개발 환경
-![개발 환경](/Files/개발환경.png)
