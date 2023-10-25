@@ -1,6 +1,3 @@
-# [sariys33.github.io](https://sariys33.github.io)  
-
-
 # 2차 팀 프로젝트
 
 ## WC WayFinder  
